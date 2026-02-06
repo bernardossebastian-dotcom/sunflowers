@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Sunflowers</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      margin: 0;
+      background: black;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    canvas {
+      background: black;
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="canvas" width="800" height="800"></canvas>
+
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+// Cargar el JSON
+fetch("sunflowers.json")
+  .then(res => res.json())
+  .then(regions => draw(regions));
+
+function draw(regions) {
+
+  // Obtener todos los puntos
+  let allPoints = [];
+  regions.forEach(r => {
+    r.contour.forEach(p => allPoints.push(p));
+  });
+
+  let xs = allPoints.map(p => p[0]);
+  let ys = allPoints.map(p => p[1]);
+
+  let minX = Math.min(...xs);
+  let maxX = Math.max(...xs);
+  let minY = Math.min(...ys);
+  let maxY = Math.max(...ys);
+
+  let width = maxX - minX;
+  let height = maxY - minY;
+
+  let scale = Math.min(600 / width, 600 / height);
+
+  let centerX = (minX + maxX) / 2;
+  let centerY = (minY + maxY) / 2;
+
+  ctx.translate(canvas.width / 2, canvas.height / 2);
+
+  regions.forEach(region => {
+    let [r, g, b] = region.color;
+    ctx.fillStyle = `rgb(${r},${g},${b})`;
+    ctx.beginPath();
+
+    region.contour.forEach((point, index) => {
+      let x = (point[0] - centerX) * scale;
+      let y = (centerY - point[1]) * scale;
+
+      if (index === 0) {
+        ctx.moveTo(x, y);
+      } else {
+        ctx.lineTo(x, y);
+      }
+    });
+
+    ctx.closePath();
+    ctx.fill();
+  });
+}
+</script>
+
+</body>
+</html>
